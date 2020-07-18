@@ -72,6 +72,7 @@ namespace SongPerformer
             audioSource.loop = false;
             audioSource.volume = 0.15f;
 
+            clipController = new AudioClipController();
             clipController.LoadAudioClip(audioClipPath);            
         }
 
@@ -106,6 +107,7 @@ namespace SongPerformer
             Logger.log?.Debug($"{name}: Awake()");
 
             player = new StarLightStagePlayer();
+
             player.Init(gameObject);
 
             BSEvents.noteWasCut += HandleControlelrNoteWasCut;
