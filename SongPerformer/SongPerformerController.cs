@@ -1,5 +1,6 @@
 ﻿using BS_Utils.Utilities;
 using System;
+using System.CodeDom;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -57,6 +58,10 @@ namespace SongPerformer
 
         }
 
+        public virtual void SetEffect<Type>(Type T) //To make data container
+        {
+
+        }
     }
 
     public class StarLightStagePlayer : SoundPlayer
@@ -79,6 +84,67 @@ namespace SongPerformer
         public override void PlaySound()
         {
             audioSource.PlayOneShot(clipController.GetAudioClip());
+        }
+    }
+
+    public class FutureBassPlayer : SoundPlayer
+    {
+
+        public enum PlayPosition
+        {
+            PLAY_LEFT,
+            PLAY_RIGHT,
+            PLAY_CENTER
+        }
+
+        private const string audioClipPath_Left = "D:/BeatSaberMod/EffectSamples/Left_Effect.wav";
+        private const string audioClipPath_Right = "D:/BeatSaberMod/EffectSamples/Right_Effect.wav";
+        private const string audioClipPath_Center = "D:/BeatSaberMod/EffectSamples/Center_Effect.wav";
+        private AudioClipController clipController_Left, clipController_Right, clipController_Center;
+
+        private AudioClip audioClip;
+
+        public override void Init(GameObject gameObject)
+        {
+            base.Init(gameObject);
+
+            audioSource.loop = false;
+            audioSource.volume = 0.3f;
+
+            clipController_Left = new AudioClipController();
+            clipController_Left.LoadAudioClip(audioClipPath_Left);
+            clipController_Right = new AudioClipController();
+            clipController_Right.LoadAudioClip(audioClipPath_Right);
+            clipController_Center = new AudioClipController();
+            clipController_Center.LoadAudioClip(audioClipPath_Center);
+        }
+
+        public override void PlaySound()
+        {
+            audioSource.PlayOneShot(audioClip);
+        }
+
+        public override void SetEffect<Type>(Type T)
+        {
+            if (typeof(Type) != typeof(PlayPosition)) return;
+
+            PlayPosition pos = (PlayPosition)(object)T;
+
+            switch (pos)
+            {
+                case PlayPosition.PLAY_LEFT:
+                    audioClip = clipController_Left.GetAudioClip();
+                    break;
+
+                case PlayPosition.PLAY_RIGHT:
+                    audioClip = clipController_Right.GetAudioClip();
+                    break;
+
+                default:
+                    audioClip = clipController_Center.GetAudioClip();
+                    break;
+
+            }
         }
     }
 
@@ -106,7 +172,8 @@ namespace SongPerformer
             instance = this;
             Logger.log?.Debug($"{name}: Awake()");
 
-            player = new StarLightStagePlayer();
+            //player = new StarLightStagePlayer();
+            player = new FutureBassPlayer();
 
             player.Init(gameObject);
 
@@ -115,6 +182,29 @@ namespace SongPerformer
 
         public static void HandleControlelrNoteWasCut(NoteData noteData, NoteCutInfo noteCutInfo, int multiplayer)
         {
+
+            FutureBassPlayer.PlayPosition pos;
+
+            switch (noteData.cutDirection)
+            {
+                case NoteCutDirection.Left:
+                case NoteCutDirection.DownLeft:
+                case NoteCutDirection.UpLeft:
+                    pos = FutureBassPlayer.PlayPosition.PLAY_LEFT;
+                    break;
+
+                case NoteCutDirection.Right:
+                case NoteCutDirection.DownRight:
+                case NoteCutDirection.UpRight:
+                    pos = FutureBassPlayer.PlayPosition.PLAY_RIGHT;
+                    break;
+
+                default:
+                    pos = FutureBassPlayer.PlayPosition.PLAY_CENTER;
+                    break;
+            }
+
+            player.SetEffect(pos);
             player.PlaySound();
         }
 
