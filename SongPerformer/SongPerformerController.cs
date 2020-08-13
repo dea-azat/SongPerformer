@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 
 namespace SongPerformer
@@ -26,27 +28,55 @@ namespace SongPerformer
             return cutEffect;
         }
 
-        public void LoadAudioClip(string filename)
+        public void LoadAudioClip(string filename, bool stream=true, AudioType audioType=AudioType.WAV)
         {
             Logger.log.Error("LoadAudioSource Start");
 
             using (WWW www = new WWW("file://" + filename))
             {
-                cutEffect = www.GetAudioClip(false, true);
+                cutEffect = www.GetAudioClip(threeD:false, stream:stream, audioType:audioType);
+
+                Logger.log.Error("loadState = " + cutEffect.loadState);
+                Logger.log.Error("loadType = " + cutEffect.loadType);
                 bool flag = cutEffect.loadState != AudioDataLoadState.Loaded;
+
                 if (flag)
                 {
                     Logger.log.Error("Failed to load AudioClip.");
                     return;
                 }
+
                 Logger.log.Error("Clip Load Success");
             }
+        }
+
+        public IEnumerator LoadAudioClipWithWebRequest(string filename, UnityAction<AudioClip> callback)
+        {
+            AudioClip clip;
+
+            Logger.log.Error("LoadAudioClipWithWebRequest Start");
+
+            using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip("file://" + filename, AudioType.OGGVORBIS))
+            {
+                yield return www.SendWebRequest(); // must wait
+                clip = DownloadHandlerAudioClip.GetContent(www);
+            }
+
+            cutEffect = clip;
+
+            Logger.log.Error("loadState = " + clip.loadState);
+            Logger.log.Error("loadType = " + clip.loadType);
+
+            Logger.log.Error("Clip Load Success");
+
+            callback(clip);
         }
     }
 
     public class SoundPlayer
     {
         protected AudioSource audioSource;
+        static public float SEMITONE = Mathf.Pow(2f, 1f / 12f);
 
         public virtual void Init( GameObject gameObject )
         {
@@ -62,6 +92,11 @@ namespace SongPerformer
         {
 
         }
+
+        public virtual void SetPitch( float _pitch )
+        {
+            audioSource.pitch = _pitch;
+        }
     }
 
     public class StarLightStagePlayer : SoundPlayer
@@ -75,7 +110,7 @@ namespace SongPerformer
             base.Init(gameObject);
 
             audioSource.loop = false;
-            audioSource.volume = 0.15f;
+            audioSource.volume = 0.2f;
 
             clipController = new AudioClipController();
             clipController.LoadAudioClip(audioClipPath);            
@@ -109,7 +144,7 @@ namespace SongPerformer
             base.Init(gameObject);
 
             audioSource.loop = false;
-            audioSource.volume = 0.3f;
+            audioSource.volume = 0.4f;
 
             clipController_Left = new AudioClipController();
             clipController_Left.LoadAudioClip(audioClipPath_Left);
@@ -178,6 +213,7 @@ namespace SongPerformer
             player.Init(gameObject);
 
             BSEvents.noteWasCut += HandleControlelrNoteWasCut;
+            BSEvents.gameSceneLoaded += AdjustPitchForCutEffect;
         }
 
         public static void HandleControlelrNoteWasCut(NoteData noteData, NoteCutInfo noteCutInfo, int multiplayer)
@@ -206,6 +242,66 @@ namespace SongPerformer
 
             player.SetEffect(pos);
             player.PlaySound();
+        }
+
+        public void AdjustPitchForCutEffect()
+        {
+            Logger.log.Error("AdjustPitchForCutEffect");
+
+            player.SetPitch(1f); //must initialize 
+
+            IDifficultyBeatmap diffBeatmap = BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData.difficultyBeatmap;
+            CustomPreviewBeatmapLevel customPreviewBeatmapLevel = diffBeatmap.level as CustomPreviewBeatmapLevel;
+
+            if (customPreviewBeatmapLevel != null)
+            {
+                string customLevelPath = customPreviewBeatmapLevel.customLevelPath;
+                string songFileName = customPreviewBeatmapLevel.standardLevelInfoSaveData.songFilename;
+                string filepath = customLevelPath + "\\" + songFileName;
+                Logger.log.Error("custom level path = " + filepath);
+
+                AudioClipController customSong = new AudioClipController();
+                StartCoroutine(customSong.LoadAudioClipWithWebRequest(filepath, OnFinishLoadAudioClipWebRequest));
+            }
+        }
+
+        public void OnFinishLoadAudioClipWebRequest( AudioClip audioClip )
+        {
+            AdjustPitch(audioClip);
+        }
+
+        void AdjustPitch(AudioClip clip)
+        {
+            int key = KeyFinder.KeyFind(clip);
+            Logger.log.Error("the key of song is " + key);
+
+            int sampleKey = 21; //GMinor
+
+            int minMajDiff = (sampleKey % 2 == 0) ? -3 : 3;
+            minMajDiff = ((key % 2) == (sampleKey % 2)) ? 0 : minMajDiff;
+
+            int diff = ((int)(key - sampleKey) / 2 + minMajDiff + 24) % 12;
+
+            float pitch = 1f;
+
+            if (diff <= 7)
+            {
+                for (int i = 0; i < diff; i++)
+                {
+                    pitch *= SoundPlayer.SEMITONE;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < 12 - diff; i++)
+                {
+                    pitch /= SoundPlayer.SEMITONE;
+                }
+            }
+
+            player.SetPitch(pitch);
+
+            Logger.log.Error("the key diff is " + diff); 
         }
 
         /// <summary>
