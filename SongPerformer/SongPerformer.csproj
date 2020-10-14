@@ -23,7 +23,7 @@
     <DebugSymbols>true</DebugSymbols>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;UNITY_2018_3_OR_NEWER</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -46,6 +46,10 @@
     <Reference Include="BS_Utils, Version=1.4.10.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\ProgramFiles\Steam\steamapps\common\Beat Saber\Plugins\BS_Utils.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Users\aim1b\BeatMapPlayer\Assets\Plugins\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -115,12 +119,155 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AudioManager.cs" />
+    <Compile Include="CutEffect\CutEffectMap.cs" />
+    <Compile Include="CutEffect\CutEffectMapLoader.cs" />
+    <Compile Include="CutEffect\CutEffectPlayer.cs" />
+    <Compile Include="JsonParser.cs" />
     <Compile Include="KeyFinder.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Configuration\PluginConfig.cs" />
     <Compile Include="SongPerformerController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UniTask\AsyncLazy.cs" />
+    <Compile Include="UniTask\AsyncReactiveProperty.cs" />
+    <Compile Include="UniTask\AsyncUnit.cs" />
+    <Compile Include="UniTask\CancellationTokenEqualityComparer.cs" />
+    <Compile Include="UniTask\CancellationTokenExtensions.cs" />
+    <Compile Include="UniTask\CancellationTokenSourceExtensions.cs" />
+    <Compile Include="UniTask\Channel.cs" />
+    <Compile Include="UniTask\CompilerServices\AsyncMethodBuilderAttribute.cs" />
+    <Compile Include="UniTask\CompilerServices\AsyncUniTaskMethodBuilder.cs" />
+    <Compile Include="UniTask\CompilerServices\AsyncUniTaskVoidMethodBuilder.cs" />
+    <Compile Include="UniTask\CompilerServices\StateMachineRunner.cs" />
+    <Compile Include="UniTask\EnumerableAsyncExtensions.cs" />
+    <Compile Include="UniTask\EnumeratorAsyncExtensions.cs" />
+    <Compile Include="UniTask\ExceptionExtensions.cs" />
+    <Compile Include="UniTask\Internal\ArrayPool.cs" />
+    <Compile Include="UniTask\Internal\ArrayPoolUtil.cs" />
+    <Compile Include="UniTask\Internal\ArrayUtil.cs" />
+    <Compile Include="UniTask\Internal\ContinuationQueue.cs" />
+    <Compile Include="UniTask\Internal\DiagnosticsExtensions.cs" />
+    <Compile Include="UniTask\Internal\Error.cs" />
+    <Compile Include="UniTask\Internal\MinimumQueue.cs" />
+    <Compile Include="UniTask\Internal\PlayerLoopRunner.cs" />
+    <Compile Include="UniTask\Internal\PooledDelegate.cs" />
+    <Compile Include="UniTask\Internal\RuntimeHelpersAbstraction.cs" />
+    <Compile Include="UniTask\Internal\StatePool.cs" />
+    <Compile Include="UniTask\Internal\TaskTracker.cs" />
+    <Compile Include="UniTask\Internal\UnityEqualityComparer.cs" />
+    <Compile Include="UniTask\Internal\UnityWebRequestExtensions.cs" />
+    <Compile Include="UniTask\Internal\ValueStopwatch.cs" />
+    <Compile Include="UniTask\Internal\WeakDictionary.cs" />
+    <Compile Include="UniTask\IUniTaskAsyncEnumerable.cs" />
+    <Compile Include="UniTask\IUniTaskSource.cs" />
+    <Compile Include="UniTask\Linq\Aggregate.cs" />
+    <Compile Include="UniTask\Linq\All.cs" />
+    <Compile Include="UniTask\Linq\Any.cs" />
+    <Compile Include="UniTask\Linq\AppendPrepend.cs" />
+    <Compile Include="UniTask\Linq\AsUniTaskAsyncEnumerable.cs" />
+    <Compile Include="UniTask\Linq\AsyncEnumeratorBase.cs" />
+    <Compile Include="UniTask\Linq\Average.cs" />
+    <Compile Include="UniTask\Linq\Buffer.cs" />
+    <Compile Include="UniTask\Linq\Cast.cs" />
+    <Compile Include="UniTask\Linq\CombineLatest.cs" />
+    <Compile Include="UniTask\Linq\Concat.cs" />
+    <Compile Include="UniTask\Linq\Contains.cs" />
+    <Compile Include="UniTask\Linq\Count.cs" />
+    <Compile Include="UniTask\Linq\Create.cs" />
+    <Compile Include="UniTask\Linq\DefaultIfEmpty.cs" />
+    <Compile Include="UniTask\Linq\Distinct.cs" />
+    <Compile Include="UniTask\Linq\DistinctUntilChanged.cs" />
+    <Compile Include="UniTask\Linq\Do.cs" />
+    <Compile Include="UniTask\Linq\ElementAt.cs" />
+    <Compile Include="UniTask\Linq\Empty.cs" />
+    <Compile Include="UniTask\Linq\Except.cs" />
+    <Compile Include="UniTask\Linq\First.cs" />
+    <Compile Include="UniTask\Linq\ForEach.cs" />
+    <Compile Include="UniTask\Linq\GroupBy.cs" />
+    <Compile Include="UniTask\Linq\GroupJoin.cs" />
+    <Compile Include="UniTask\Linq\Intersect.cs" />
+    <Compile Include="UniTask\Linq\Join.cs" />
+    <Compile Include="UniTask\Linq\Last.cs" />
+    <Compile Include="UniTask\Linq\LongCount.cs" />
+    <Compile Include="UniTask\Linq\Max.cs" />
+    <Compile Include="UniTask\Linq\Min.cs" />
+    <Compile Include="UniTask\Linq\MinMax.cs" />
+    <Compile Include="UniTask\Linq\Never.cs" />
+    <Compile Include="UniTask\Linq\OfType.cs" />
+    <Compile Include="UniTask\Linq\OrderBy.cs" />
+    <Compile Include="UniTask\Linq\Pairwise.cs" />
+    <Compile Include="UniTask\Linq\Publish.cs" />
+    <Compile Include="UniTask\Linq\Queue.cs" />
+    <Compile Include="UniTask\Linq\Range.cs" />
+    <Compile Include="UniTask\Linq\Repeat.cs" />
+    <Compile Include="UniTask\Linq\Return.cs" />
+    <Compile Include="UniTask\Linq\Reverse.cs" />
+    <Compile Include="UniTask\Linq\Select.cs" />
+    <Compile Include="UniTask\Linq\SelectMany.cs" />
+    <Compile Include="UniTask\Linq\SequenceEqual.cs" />
+    <Compile Include="UniTask\Linq\Single.cs" />
+    <Compile Include="UniTask\Linq\Skip.cs" />
+    <Compile Include="UniTask\Linq\SkipLast.cs" />
+    <Compile Include="UniTask\Linq\SkipUntil.cs" />
+    <Compile Include="UniTask\Linq\SkipUntilCanceled.cs" />
+    <Compile Include="UniTask\Linq\SkipWhile.cs" />
+    <Compile Include="UniTask\Linq\Subscribe.cs" />
+    <Compile Include="UniTask\Linq\Sum.cs" />
+    <Compile Include="UniTask\Linq\Take.cs" />
+    <Compile Include="UniTask\Linq\TakeLast.cs" />
+    <Compile Include="UniTask\Linq\TakeUntil.cs" />
+    <Compile Include="UniTask\Linq\TakeUntilCanceled.cs" />
+    <Compile Include="UniTask\Linq\TakeWhile.cs" />
+    <Compile Include="UniTask\Linq\Throw.cs" />
+    <Compile Include="UniTask\Linq\ToArray.cs" />
+    <Compile Include="UniTask\Linq\ToDictionary.cs" />
+    <Compile Include="UniTask\Linq\ToHashSet.cs" />
+    <Compile Include="UniTask\Linq\ToList.cs" />
+    <Compile Include="UniTask\Linq\ToLookup.cs" />
+    <Compile Include="UniTask\Linq\ToObservable.cs" />
+    <Compile Include="UniTask\Linq\ToUniTaskAsyncEnumerable.cs" />
+    <Compile Include="UniTask\Linq\Union.cs" />
+    <Compile Include="UniTask\Linq\Where.cs" />
+    <Compile Include="UniTask\Linq\Zip.cs" />
+    <Compile Include="UniTask\MoveNextSource.cs" />
+    <Compile Include="UniTask\PlayerLoopHelper.cs" />
+    <Compile Include="UniTask\Progress.cs" />
+    <Compile Include="UniTask\TaskPool.cs" />
+    <Compile Include="UniTask\TriggerEvent.cs" />
+    <Compile Include="UniTask\Triggers\AsyncAwakeTrigger.cs" />
+    <Compile Include="UniTask\Triggers\AsyncDestroyTrigger.cs" />
+    <Compile Include="UniTask\Triggers\AsyncStartTrigger.cs" />
+    <Compile Include="UniTask\Triggers\AsyncTriggerBase.cs" />
+    <Compile Include="UniTask\Triggers\AsyncTriggerExtensions.cs" />
+    <Compile Include="UniTask\UniTask.Bridge.cs" />
+    <Compile Include="UniTask\UniTask.cs" />
+    <Compile Include="UniTask\UniTask.Delay.cs" />
+    <Compile Include="UniTask\UniTask.Factory.cs" />
+    <Compile Include="UniTask\UniTask.Run.cs" />
+    <Compile Include="UniTask\UniTask.Threading.cs" />
+    <Compile Include="UniTask\UniTask.WaitUntil.cs" />
+    <Compile Include="UniTask\UniTask.WhenAll.cs" />
+    <Compile Include="UniTask\UniTask.WhenAll.Generated.cs" />
+    <Compile Include="UniTask\UniTask.WhenAny.cs" />
+    <Compile Include="UniTask\UniTask.WhenAny.Generated.cs" />
+    <Compile Include="UniTask\UniTaskCompletionSource.cs" />
+    <Compile Include="UniTask\UniTaskExtensions.cs" />
+    <Compile Include="UniTask\UniTaskExtensions.Shorthand.cs" />
+    <Compile Include="UniTask\UniTaskObservableExtensions.cs" />
+    <Compile Include="UniTask\UniTaskScheduler.cs" />
+    <Compile Include="UniTask\UniTaskSynchronizationContext.cs" />
+    <Compile Include="UniTask\UniTaskVoid.cs" />
+    <Compile Include="UniTask\UnityAsyncExtensions.AssetBundleRequestAllAssets.cs" />
+    <Compile Include="UniTask\UnityAsyncExtensions.AsyncGPUReadback.cs" />
+    <Compile Include="UniTask\UnityAsyncExtensions.cs" />
+    <Compile Include="UniTask\UnityAsyncExtensions.Jobs.cs" />
+    <Compile Include="UniTask\UnityAsyncExtensions.MonoBehaviour.cs" />
+    <Compile Include="UniTask\UnityAsyncExtensions.uGUI.cs" />
+    <Compile Include="UniTask\UnityBindingExtensions.cs" />
+    <Compile Include="UniTask\UnityWebRequestException.cs" />
+    <Compile Include="UniTask\_InternalVisibleTo.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="manifest.json" />
@@ -129,7 +276,9 @@
     <None Include="BuildTargets.targets" />
     <None Include=".gitignore" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="UniTask\External\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="BuildTargets.targets" />
   <PropertyGroup>
