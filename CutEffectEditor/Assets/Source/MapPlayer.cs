@@ -42,7 +42,9 @@ public class MapPlayer
         songPath = "D:\\ProgramFiles\\Steam\\steamapps\\common\\Beat Saber\\Beat Saber_Data\\CustomLevels\\2a7 (Night of Nights - squeaksies)\\Night of Nights (Flowering nights remix).egg";
         audioManager_song = new AudioManager(gameObject);
         
-        await audioManager_song.TryLoad(songPath, AudioType.OGGVORBIS);
+        bool song_loaded = await audioManager_song.TryLoad(songPath, AudioType.OGGVORBIS);
+        if(!song_loaded) return false;
+
         audioManager_song.SetVolume(0.7f);
         AdjustTapKey(audioManager_song.GetAudioClip());
 
@@ -53,7 +55,10 @@ public class MapPlayer
     {
         mapPath = "D:\\ProgramFiles\\Steam\\steamapps\\common\\Beat Saber\\Beat Saber_Data\\CustomLevels\\2a7 (Night of Nights - squeaksies)\\ExpertPlus.dat";
         
-        songEvents = JsonParser.Parse(mapPath)._notes;
+        dynamic map = JsonParser.Parse(mapPath);
+        if(map is null) return;
+
+        songEvents = map._notes;
 
         BPM = 180f;
         measureTime = 60f / BPM;

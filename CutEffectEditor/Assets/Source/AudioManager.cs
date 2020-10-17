@@ -60,7 +60,13 @@ public class AudioManager
 
     public async UniTask<bool> TryLoad(string path, AudioType audioType)
     {
-        AudioClip clip = await clipController.LoadAudioClipWithWebRequest(path, audioType);
+        AudioClip clip;
+
+        try{
+            clip = await clipController.LoadAudioClipWithWebRequest(path, audioType);
+        } catch {
+            return false;
+        }
 
         for(int i=0; i<audioSources.Count; i++)
         {

@@ -10,6 +10,8 @@ public static class JsonParser
 {
     public static dynamic Parse(string path)
     {
+        if(!File.Exists(path)) return null;
+
         string jsonText = File2String(ReadFile(path));
 
         dynamic json = JsonConvert.DeserializeObject(jsonText);
@@ -19,6 +21,8 @@ public static class JsonParser
 
     public static T Parse<T>(string path)
     {
+        if(!File.Exists(path)) return default(T);
+
         string jsonText = File2String(ReadFile(path));
 
         T json = JsonConvert.DeserializeObject<T>(jsonText);
