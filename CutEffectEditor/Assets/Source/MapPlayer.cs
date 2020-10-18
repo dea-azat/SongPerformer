@@ -31,15 +31,14 @@ public class MapPlayer
     public event SendNoteHandler SendNote;
 
     // Start is called before the first frame update
-    public async UniTask<bool> TryInit(GameObject gameObject, CutEffectPlayer cutEffectManager)
+    public async UniTask<bool> TryInit(string songPath, string matPath, GameObject gameObject, CutEffectPlayer cutEffectManager)
     {
         if (!isEnabled) return false;
 
-        InitMap();
+        InitMap(mapPath);
 
         cutEffect = cutEffectManager;
 
-        songPath = "D:\\ProgramFiles\\Steam\\steamapps\\common\\Beat Saber\\Beat Saber_Data\\CustomLevels\\2a7 (Night of Nights - squeaksies)\\Night of Nights (Flowering nights remix).egg";
         audioManager_song = new AudioManager(gameObject);
         
         bool song_loaded = await audioManager_song.TryLoad(songPath, AudioType.OGGVORBIS);
@@ -51,10 +50,8 @@ public class MapPlayer
         return true;
     }
 
-    public void InitMap()
+    public void InitMap(string mapPath)
     {
-        mapPath = "D:\\ProgramFiles\\Steam\\steamapps\\common\\Beat Saber\\Beat Saber_Data\\CustomLevels\\2a7 (Night of Nights - squeaksies)\\ExpertPlus.dat";
-        
         dynamic map = JsonParser.Parse(mapPath);
         if(map is null) return;
 

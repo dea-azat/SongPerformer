@@ -25,6 +25,36 @@ public class CutEffectPitchController : MonoBehaviour
         InitSlider();
     }
 
+    public void ShowNote(NoteInfo noteInfo)
+    {
+        int index = ConvNoteInfoToSliderIndex(noteInfo);
+
+        sliders[index].FlashBox();
+    }
+
+    private int ConvNoteInfoToSliderIndex(NoteInfo noteInfo)
+    {
+        int index;
+
+        switch(noteInfo.type){
+            case 0:
+                index = (int)BoxSlider.Slider_Type.LEFT_DOWN;
+                break;
+            case 1:
+                index = (int)BoxSlider.Slider_Type.RIGHT_DOWN;
+                break;
+            default:
+                index = 0;
+                break;
+        }
+
+        /* 将来的にはこれでよくなるはず
+            index = noteInfo.type * DIRECTION_NUM + noteInfo.cutdirection;
+        */
+
+        return index;
+    }
+
     // Start is called before the first frame update
     void Start()
     {

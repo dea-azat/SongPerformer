@@ -6,6 +6,9 @@ using UnityEngine.EventSystems;
 using System;
 using HC.Debug;
 
+using Cysharp.Threading.Tasks;
+using System.Threading;
+
 public class BoxSlider : MonoBehaviour
 {
 
@@ -24,10 +27,14 @@ public class BoxSlider : MonoBehaviour
 
     private Slider_Type type;
 
+    private Color boxColor;
+
+    public int value {get; set;}
+
     // Start is called before the first frame update
     void Start()
     {
-        //Init();
+        
     }
 
     public void Init(GameObject _cubePrefab, Slider_Type _type)
@@ -58,39 +65,72 @@ public class BoxSlider : MonoBehaviour
 
         ColliderVisualizer visualizer = GetComponent<ColliderVisualizer>();
         ColliderVisualizer.VisualizerColorType vColor = ColliderVisualizer.VisualizerColorType.Green;
-        Color color = Color.green;
 
         type = _type;
 
         switch (type) {
             case Slider_Type.LEFT_DOWN:
                 vColor = ColliderVisualizer.VisualizerColorType.Red;
-                color = Color.red;
+                boxColor = Color.red;
                 break;
             case Slider_Type.RIGHT_DOWN:
                 vColor = ColliderVisualizer.VisualizerColorType.Blue;
-                color = Color.blue;
+                boxColor = Color.blue;
                 break;
             case Slider_Type.MASTER:
                 vColor = ColliderVisualizer.VisualizerColorType.Green;
-                color = Color.green;
+                boxColor = Color.green;
                 break;
         }
 
         foreach (var cube in cubes)
         {
             var cubeCore = cube.transform.GetChild(0).GetChild(0);
-            cubeCore.GetComponent<Renderer>().material.color = color;
+            cubeCore.GetComponent<Renderer>().material.color = boxColor;
         }
         var message = "";
         var fontSize = 36;
         visualizer.Initialize(vColor, message, fontSize);
+
+        RenewBoxSlider(BoxInfoForSlider.HalfCount());
     }
 
     // Update is called once per frame
     void Update()
     {
  
+    }
+
+    private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+    public void FlashBox()
+    {
+        const int flashTime = 256;
+        const int flashHz = 15;
+
+        cancellationTokenSource.Cancel();
+        cancellationTokenSource = new CancellationTokenSource();
+
+        FlashBox(flashTime, flashHz, cancellationTokenSource.Token).Forget(e => { });
+    }
+
+    public async UniTask FlashBox(int flashTime, int flashHz, CancellationToken cancellationToken){
+        var cubeCore = cubes[value].transform.GetChild(0).GetChild(0);
+
+        Color targetColor = (boxColor + Color.white) / 2;
+
+        for(int i=0; i<=flashHz; i++){
+            float rate = (float)i / (float)flashHz;
+
+            cubeCore.GetComponent<Renderer>().material.color = boxColor * rate + (targetColor * (1f - rate));
+            try
+            {
+                await UniTask.Delay((int)(flashTime / (flashHz+1)), cancellationToken: cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+        }
     }
 
     public void MoveBox(PointerEventData eventData)
@@ -103,15 +143,22 @@ public class BoxSlider : MonoBehaviour
             int index = CalcBoxIndex(hit.point.y);
             Debug.Log(index);
 
-            foreach(var cube in cubes) {
-                cube.SetActive(false);
-            }
-
-            cubes[index].SetActive(true);
-
-            EventArgs e = new IntSliderEventArgs(index, type);
-            OnValueChanged(e);
+            RenewBoxSlider(index);
         }
+    }
+
+    private void RenewBoxSlider(int index)
+    {
+        foreach(var cube in cubes) {
+            cube.SetActive(false);
+        }
+
+        cubes[index].SetActive(true);
+
+        EventArgs e = new IntSliderEventArgs(index, type);
+        OnValueChanged(e);
+
+        value = index;
     }
 
     private int CalcBoxIndex(float y)
