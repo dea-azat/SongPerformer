@@ -32,9 +32,11 @@ public class GameMaster : MonoBehaviour
         
         string songPath = customLevelPath + "2a7 (Night of Nights - squeaksies)\\Night of Nights (Flowering nights remix).egg";
         string mapPath = customLevelPath + "2a7 (Night of Nights - squeaksies)\\ExpertPlus.dat";
+
         bool mapPlayerInited = await mapPlayer.TryInit(songPath, mapPath, gameObject, cutEffectPlayer);
-        if (!mapPlayerInited){ 
-            //return;
+        if (!mapPlayerInited){
+            Log.Write("mapPlayer is not Inited");
+            return;
         } else {
             if (forEdit) mapPlayer.InitCutEffectMapForEdit();
             mapPlayer.Play();

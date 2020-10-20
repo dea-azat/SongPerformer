@@ -3,6 +3,7 @@ using SongPerformer;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Security.Cryptography;
 using UnityEngine;
 
@@ -22,8 +23,6 @@ public class MapPlayer
     private AudioManager audioManager_song;
     private CutEffectPlayer cutEffect;
 
-    string mapPath;
-
     bool isPlaying = false;
 
     bool isEnabled = true;
@@ -31,11 +30,11 @@ public class MapPlayer
     public event SendNoteHandler SendNote;
 
     // Start is called before the first frame update
-    public async UniTask<bool> TryInit(string songPath, string matPath, GameObject gameObject, CutEffectPlayer cutEffectManager)
+    public async UniTask<bool> TryInit(string songPath, string mapPath, GameObject gameObject, CutEffectPlayer cutEffectManager)
     {
         if (!isEnabled) return false;
 
-        InitMap(mapPath);
+        if (!TryInitMap(mapPath)) return false;
 
         cutEffect = cutEffectManager;
 
@@ -50,16 +49,18 @@ public class MapPlayer
         return true;
     }
 
-    public void InitMap(string mapPath)
+    public bool TryInitMap(string mapPath)
     {
         dynamic map = JsonParser.Parse(mapPath);
-        if(map is null) return;
+        if(map is null) return false;
 
         songEvents = map._notes;
 
         BPM = 180f;
         measureTime = 60f / BPM;
         nextTime = (float)(songEvents[0]._time) * measureTime;
+
+        return true;
     }
 
     public void InitCutEffectMapForEdit()
@@ -132,7 +133,7 @@ public class MapPlayer
 
     void StopForEdit()
     {
-        cutEffect.WriteOutCutEffectMap(mapPath);
+        cutEffect.WriteOutCutEffectMap(/*mapPath*/""); /*! @todo Modify Edit Process  */
     }
 
     int SongEvents2TapIndex(NoteInfo noteInfo)
