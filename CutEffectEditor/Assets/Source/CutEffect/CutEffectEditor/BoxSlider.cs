@@ -9,6 +9,8 @@ using HC.Debug;
 using Cysharp.Threading.Tasks;
 using System.Threading;
 
+using CustomNotes.Data;
+
 public class BoxSlider : MonoBehaviour
 {
 
@@ -37,9 +39,21 @@ public class BoxSlider : MonoBehaviour
         
     }
 
-    public void Init(GameObject _cubePrefab, Slider_Type _type)
+    public void Init(Slider_Type _type)
     {
-        cubePrefab = _cubePrefab;
+        type = _type;
+        CustomNote cNote = BloqLoader.Load();
+        switch (type) {
+            case Slider_Type.LEFT_DOWN:
+                cubePrefab = cNote.NoteLeft;
+                break;
+            case Slider_Type.RIGHT_DOWN:
+                cubePrefab = cNote.NoteRight;
+                break;
+            case Slider_Type.MASTER:
+                cubePrefab = cNote.NoteDotLeft;
+                break;
+        }
 
         BoxInfoForSlider.size = 1f;
 
@@ -65,8 +79,6 @@ public class BoxSlider : MonoBehaviour
 
         ColliderVisualizer visualizer = GetComponent<ColliderVisualizer>();
         ColliderVisualizer.VisualizerColorType vColor = ColliderVisualizer.VisualizerColorType.Green;
-
-        type = _type;
 
         switch (type) {
             case Slider_Type.LEFT_DOWN:
@@ -199,4 +211,36 @@ class IntSliderEventArgs : EventArgs
 
     public int index { get; }
     public BoxSlider.Slider_Type type { get; }
+}
+
+public class RevolvingBoxSlider
+{
+    private BoxSlider[] sliders;
+
+    public RevolvingBoxSlider(GameObject boxSliderPrefab, BoxSlider.Slider_Type type, int sliderCnt=8, float radius=3f, EventHandler SliderValueChanged=null){
+        float radian = 2f * Mathf.PI / (float)sliderCnt;
+        float angle = 360f / (float)sliderCnt;
+        
+        sliders = new BoxSlider[sliderCnt];
+
+        for(int i=0; i<sliderCnt; i++){
+            Vector3 slider_pos = new Vector3(radius*Mathf.Sin(i*radian), 0, radius*(-Mathf.Cos(i*radian)));
+            GameObject boxSlider = GameObject.Instantiate(boxSliderPrefab, slider_pos, Quaternion.identity);
+            BoxSlider slider = boxSlider.GetComponent<BoxSlider>();
+            slider.Init(type);
+            boxSlider.transform.rotation = Quaternion.Euler(0, i*45, 0);
+            slider.ValueChanged += SliderValueChanged;
+            sliders[i] = slider;
+        }
+    }
+
+    public void Move(Vector3 vec){
+        foreach(BoxSlider slider in sliders){
+            slider.transform.position += vec;
+        }
+    }
+
+    public void FlashBox(int index){
+        sliders[index].FlashBox();
+    }
 }

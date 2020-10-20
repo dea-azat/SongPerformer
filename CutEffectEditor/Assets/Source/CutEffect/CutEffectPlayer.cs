@@ -7,7 +7,7 @@ using Cysharp.Threading.Tasks;
 
 public class CutEffectPlayer
 {
-    public static readonly int DIRECTION_NUM = 9;
+    public static readonly int DIRECTION_NUM = 8;
     public static readonly int HAND_NUM = 2;
     public static readonly int TAP_NUM = DIRECTION_NUM * HAND_NUM;
 

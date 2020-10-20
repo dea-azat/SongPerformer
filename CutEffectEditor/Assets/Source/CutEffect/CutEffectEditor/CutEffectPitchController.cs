@@ -4,23 +4,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-using CustomNotes.Data;
-
 public class CutEffectPitchController : MonoBehaviour
 {
     private CutEffectPlayer cutEffectManager;
 
     public GameObject boxSliderPrefab;
     private BoxSlider masterSlider;
-    private BoxSlider[] sliders;
-
-    private BloqLoader bloqLoader = new BloqLoader();
+    private RevolvingBoxSlider[] sliders;
 
     public void Init(int tap_num, CutEffectPlayer manager)
     {
         cutEffectManager = manager;
 
-        sliders = new BoxSlider[tap_num];
+        sliders = new RevolvingBoxSlider[tap_num];
 
         InitSlider();
     }
@@ -29,7 +25,7 @@ public class CutEffectPitchController : MonoBehaviour
     {
         int index = ConvNoteInfoToSliderIndex(noteInfo);
 
-        sliders[index].FlashBox();
+        sliders[index].FlashBox(noteInfo.cutDirection);
     }
 
     private int ConvNoteInfoToSliderIndex(NoteInfo noteInfo)
@@ -67,27 +63,38 @@ public class CutEffectPitchController : MonoBehaviour
         
     }
 
+    
     void InitSlider()
     {
-        CustomNote cNote = bloqLoader.Load();
+        Vector3 left_sliders_pos = new Vector3(-3f, 0, 3f);
 
-        GameObject boxSlider = Instantiate(boxSliderPrefab, new Vector3(-2f, 0, 0), Quaternion.identity);
-        BoxSlider slider = boxSlider.GetComponent<BoxSlider>();
-        slider.Init(cNote.NoteLeft, BoxSlider.Slider_Type.LEFT_DOWN);
-        slider.ValueChanged += SliderValueChanged;
-        sliders[(int)BoxSlider.Slider_Type.LEFT_DOWN] = slider;
+        RevolvingBoxSlider rSlider = new RevolvingBoxSlider(
+            boxSliderPrefab, BoxSlider.Slider_Type.LEFT_DOWN, CutEffectPlayer.DIRECTION_NUM, 3f, SliderValueChanged
+            );
+        rSlider.Move(left_sliders_pos);
+        sliders[(int)BoxSlider.Slider_Type.LEFT_DOWN] = rSlider;
 
+
+        Vector3 right_sliders_pos = new Vector3(3f, 0, 3f);
+
+        rSlider = new RevolvingBoxSlider(
+            boxSliderPrefab, BoxSlider.Slider_Type.RIGHT_DOWN, CutEffectPlayer.DIRECTION_NUM, 3f, SliderValueChanged
+            );
+        rSlider.Move(right_sliders_pos);
+        sliders[(int)BoxSlider.Slider_Type.RIGHT_DOWN] = rSlider;
+        /*
         boxSlider = Instantiate(boxSliderPrefab, new Vector3(2f, 0, 0), Quaternion.identity);
         slider = boxSlider.GetComponent<BoxSlider>();
         slider.Init(cNote.NoteRight, BoxSlider.Slider_Type.RIGHT_DOWN);
         slider.ValueChanged += SliderValueChanged;
         sliders[(int)BoxSlider.Slider_Type.RIGHT_DOWN] = slider;
-
-        boxSlider = Instantiate(boxSliderPrefab, new Vector3(0, 0, 0), Quaternion.identity);
-        slider = boxSlider.GetComponent<BoxSlider>();
-        slider.Init(cNote.NoteDotLeft, BoxSlider.Slider_Type.MASTER);
+        */
+        GameObject boxSlider = Instantiate(boxSliderPrefab, new Vector3(0, 0, 0), Quaternion.identity);
+        BoxSlider slider = boxSlider.GetComponent<BoxSlider>();
+        slider.Init(BoxSlider.Slider_Type.MASTER);
         slider.ValueChanged += SliderValueChanged;
         masterSlider = slider;
+        
     }
 
     void SliderValueChanged(object obj, EventArgs e)

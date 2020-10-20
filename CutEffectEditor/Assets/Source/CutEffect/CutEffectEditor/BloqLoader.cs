@@ -4,22 +4,19 @@ using UnityEngine;
 using CustomNotes;
 using CustomNotes.Data;
 
-public class BloqLoader
+public static class BloqLoader
 {
+    static CustomNote note = null;
     // Start is called before the first frame update
-    public CustomNote Load()
+    public static CustomNote Load()
     {
+        if(note != null) return note;
+        
         Debug.Log("Bloq Loader Start");
         string path = Application.streamingAssetsPath + "/Smol Note.bloq";
 
-        CustomNote note = new CustomNote(path);
+        note = new CustomNote(path);
 
         return note;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }
