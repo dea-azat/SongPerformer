@@ -25,7 +25,7 @@ public class CutEffectPitchController : MonoBehaviour
     {
         int index = ConvNoteInfoToSliderIndex(noteInfo);
 
-        sliders[index].FlashBox(noteInfo.cutDirection);
+        sliders[index].FlashBox((int)noteInfo.cutDirection);
     }
 
     private int ConvNoteInfoToSliderIndex(NoteInfo noteInfo)
@@ -33,10 +33,10 @@ public class CutEffectPitchController : MonoBehaviour
         int index;
 
         switch(noteInfo.type){
-            case 0:
+            case NoteInfo.Type.LEFT:
                 index = (int)BoxSlider.Slider_Type.LEFT_DOWN;
                 break;
-            case 1:
+            case NoteInfo.Type.RIGHT:
                 index = (int)BoxSlider.Slider_Type.RIGHT_DOWN;
                 break;
             default:
@@ -66,19 +66,19 @@ public class CutEffectPitchController : MonoBehaviour
     
     void InitSlider()
     {
-        Vector3 left_sliders_pos = new Vector3(-3f, 0, 3f);
+        Vector3 left_sliders_pos = new Vector3(-4f, 0, 3f);
 
         RevolvingBoxSlider rSlider = new RevolvingBoxSlider(
-            boxSliderPrefab, BoxSlider.Slider_Type.LEFT_DOWN, CutEffectPlayer.DIRECTION_NUM, 3f, SliderValueChanged
+            boxSliderPrefab, BoxSlider.Slider_Type.LEFT_BEGIN, CutEffectPlayer.DIRECTION_NUM, 3f, SliderValueChanged
             );
         rSlider.Move(left_sliders_pos);
         sliders[(int)BoxSlider.Slider_Type.LEFT_DOWN] = rSlider;
 
 
-        Vector3 right_sliders_pos = new Vector3(3f, 0, 3f);
+        Vector3 right_sliders_pos = new Vector3(4f, 0, 3f);
 
         rSlider = new RevolvingBoxSlider(
-            boxSliderPrefab, BoxSlider.Slider_Type.RIGHT_DOWN, CutEffectPlayer.DIRECTION_NUM, 3f, SliderValueChanged
+            boxSliderPrefab, BoxSlider.Slider_Type.RIGHT_BEGIN, CutEffectPlayer.DIRECTION_NUM, 3f, SliderValueChanged
             );
         rSlider.Move(right_sliders_pos);
         sliders[(int)BoxSlider.Slider_Type.RIGHT_DOWN] = rSlider;

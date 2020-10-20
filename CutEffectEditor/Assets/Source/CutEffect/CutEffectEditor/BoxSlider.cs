@@ -10,14 +10,40 @@ using Cysharp.Threading.Tasks;
 using System.Threading;
 
 using CustomNotes.Data;
+using System.CodeDom;
 
 public class BoxSlider : MonoBehaviour
 {
 
     public enum Slider_Type{
+        Slider_Type_Min = 0,
+
+        LEFT_BEGIN = Slider_Type_Min,
         LEFT_DOWN,
+        LEFT_LEFT_DOWN,
+        LEFT_LEFT,
+        LEFT_LEFT_UP,
+        LEFT_UP,
+        LEFT_RIGHT_UP,
+        LEFT_RIGHT,
+        LEFT_RIGHT_DOWN,
+        LEFT_END,
+
+        RIGHT_BEGIN,
         RIGHT_DOWN,
-        MASTER
+        RIGHT_LEFT_DOWN,
+        RIGHT_LEFT,
+        RIGHT_LEFT_UP,
+        RIGHT_UP,
+        RIGHT_RIGHT_UP,
+        RIGHT_RIGHT,
+        RIGHT_RIGHT_DOWN,
+        RIGHT_END,
+
+        MASTER,
+
+        Slider_Type_Num,
+        Slider_Type_Max = Slider_Type_Num - 1
     }
 
     private GameObject cubePrefab;
@@ -43,18 +69,31 @@ public class BoxSlider : MonoBehaviour
     {
         type = _type;
         CustomNote cNote = BloqLoader.Load();
-        switch (type) {
-            case Slider_Type.LEFT_DOWN:
-                cubePrefab = cNote.NoteLeft;
-                break;
-            case Slider_Type.RIGHT_DOWN:
-                cubePrefab = cNote.NoteRight;
-                break;
-            case Slider_Type.MASTER:
-                cubePrefab = cNote.NoteDotLeft;
-                break;
-        }
+        ColliderVisualizer.VisualizerColorType vColor = ColliderVisualizer.VisualizerColorType.Green;
 
+        if (Slider_Type.LEFT_BEGIN < type && type < Slider_Type.LEFT_END) 
+        {
+            cubePrefab = cNote.NoteLeft;
+            cubePrefab.transform.rotation = Quaternion.Euler(new Vector3(0, 0, -45 * (int)(type - Slider_Type.LEFT_BEGIN - 1)));
+
+            vColor = ColliderVisualizer.VisualizerColorType.Red;
+            boxColor = Color.red;
+        } 
+        else if (Slider_Type.RIGHT_BEGIN < type && type < Slider_Type.RIGHT_END)
+        {
+            cubePrefab = cNote.NoteRight;
+            cubePrefab.transform.rotation = Quaternion.Euler(new Vector3(0, 0, -45 * (int)(type - Slider_Type.RIGHT_BEGIN - 1)));
+
+            vColor = ColliderVisualizer.VisualizerColorType.Blue;
+            boxColor = Color.blue;
+        } else
+        {
+            cubePrefab = cNote.NoteDotLeft;
+
+            vColor = ColliderVisualizer.VisualizerColorType.Green;
+            boxColor = Color.green;
+        }               
+                
         BoxInfoForSlider.size = 1f;
 
         for (int i = 0; i < BoxInfoForSlider.count; i++)
@@ -78,22 +117,6 @@ public class BoxSlider : MonoBehaviour
 
 
         ColliderVisualizer visualizer = GetComponent<ColliderVisualizer>();
-        ColliderVisualizer.VisualizerColorType vColor = ColliderVisualizer.VisualizerColorType.Green;
-
-        switch (type) {
-            case Slider_Type.LEFT_DOWN:
-                vColor = ColliderVisualizer.VisualizerColorType.Red;
-                boxColor = Color.red;
-                break;
-            case Slider_Type.RIGHT_DOWN:
-                vColor = ColliderVisualizer.VisualizerColorType.Blue;
-                boxColor = Color.blue;
-                break;
-            case Slider_Type.MASTER:
-                vColor = ColliderVisualizer.VisualizerColorType.Green;
-                boxColor = Color.green;
-                break;
-        }
 
         foreach (var cube in cubes)
         {
@@ -149,7 +172,7 @@ public class BoxSlider : MonoBehaviour
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
-        if (Physics.Raycast(ray, out hit, 10.0f))
+        if (Physics.Raycast(ray, out hit, 15.0f))
         {
             Debug.Log(hit.point);
             int index = CalcBoxIndex(hit.point.y);
@@ -227,7 +250,7 @@ public class RevolvingBoxSlider
             Vector3 slider_pos = new Vector3(radius*Mathf.Sin(i*radian), 0, radius*(-Mathf.Cos(i*radian)));
             GameObject boxSlider = GameObject.Instantiate(boxSliderPrefab, slider_pos, Quaternion.identity);
             BoxSlider slider = boxSlider.GetComponent<BoxSlider>();
-            slider.Init(type);
+            slider.Init(type + i + 1);
             boxSlider.transform.rotation = Quaternion.Euler(0, i*45, 0);
             slider.ValueChanged += SliderValueChanged;
             sliders[i] = slider;
@@ -241,6 +264,43 @@ public class RevolvingBoxSlider
     }
 
     public void FlashBox(int index){
-        sliders[index].FlashBox();
+        int sliderIndex = (int)(ConvTypeCutDirectionToSliderIndex((NoteInfo.CutDirection)index) - (BoxSlider.Slider_Type.LEFT_BEGIN + 1));
+        Debug.Log(sliderIndex);
+        if (sliderIndex >= sliders.Length) return;
+
+        sliders[sliderIndex].FlashBox();
+    }
+
+    private BoxSlider.Slider_Type ConvTypeForNoteInfoToSlider(NoteInfo noteInfo)
+    {
+        return ConvTypeCutDirectionToSliderIndex(noteInfo.cutDirection) + (int)noteInfo.type * ((int)BoxSlider.Slider_Type.RIGHT_BEGIN);
+    }
+
+    private BoxSlider.Slider_Type ConvTypeCutDirectionToSliderIndex(NoteInfo.CutDirection cutDirection)
+    {
+        Debug.Log(cutDirection);
+        switch (cutDirection)
+        {
+            case NoteInfo.CutDirection.DOWN:
+                return BoxSlider.Slider_Type.LEFT_DOWN;
+            case NoteInfo.CutDirection.UP:
+                return BoxSlider.Slider_Type.LEFT_UP;
+            case NoteInfo.CutDirection.LEFT:
+                return BoxSlider.Slider_Type.LEFT_LEFT;
+            case NoteInfo.CutDirection.RIGHT:
+                return BoxSlider.Slider_Type.LEFT_RIGHT;
+
+            case NoteInfo.CutDirection.LEFT_UP:
+                return BoxSlider.Slider_Type.LEFT_LEFT_UP;
+            case NoteInfo.CutDirection.LEFT_DOWN:
+                return BoxSlider.Slider_Type.LEFT_LEFT_DOWN;
+            case NoteInfo.CutDirection.RIGHT_UP:
+                return BoxSlider.Slider_Type.LEFT_RIGHT_UP;
+            case NoteInfo.CutDirection.RIGHT_DOWN:
+                return BoxSlider.Slider_Type.LEFT_RIGHT_DOWN;
+
+            default:
+                return BoxSlider.Slider_Type.Slider_Type_Max;
+        }
     }
 }

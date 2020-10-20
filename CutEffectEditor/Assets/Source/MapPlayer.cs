@@ -140,13 +140,13 @@ public class MapPlayer
     {
         int index = 0;
 
-        if (noteInfo.cutDirection == 0 || noteInfo.cutDirection == 1)
+        if (noteInfo.cutDirection == NoteInfo.CutDirection.DOWN || noteInfo.cutDirection == NoteInfo.CutDirection.UP)
         {
-            if (noteInfo.type == 0) index = 2;
-            if (noteInfo.type == 1) index = 3;
+            if (noteInfo.type == NoteInfo.Type.LEFT) index = 2;
+            if (noteInfo.type == NoteInfo.Type.RIGHT) index = 3;
         }
-        else if (noteInfo.type == 0) { index = 0; }
-        else if (noteInfo.type == 1) { index = 1; }
+        else if (noteInfo.type == NoteInfo.Type.LEFT) { index = 0; }
+        else if (noteInfo.type == NoteInfo.Type.RIGHT) { index = 1; }
 
         return index;
     }
