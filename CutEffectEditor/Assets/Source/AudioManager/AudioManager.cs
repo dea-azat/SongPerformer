@@ -19,22 +19,12 @@ using System.Runtime.InteropServices;
 public class AudioManager
 {
     List<AudioSource> audioSources = new List<AudioSource>();
-    AudioClipController clipController;
+    AudioClipUtils clipController;
     int playIndex = 0;
 
     float masterPitch = 1f;
     int masterDiff = 0;
     int customDiff = 0;
-
-    enum AudioSourceState
-    {
-        Unload,
-        Load,
-        Play,
-        Stop
-    }
-
-    AudioSourceState state = AudioSourceState.Unload;
 
     public AudioManager(GameObject gameObject, int audioNum = 1)
     {
@@ -44,7 +34,7 @@ public class AudioManager
             audioSources.Add(audioSource);
         }
 
-        clipController = new AudioClipController();
+        clipController = new AudioClipUtils();
     }
 
     void LoadExecute(AudioClip clip)
@@ -63,7 +53,7 @@ public class AudioManager
         AudioClip clip;
 
         try{
-            clip = await clipController.LoadAudioClipWithWebRequest(path, audioType);
+            clip = await clipController.LoadWithWebRequest(path, audioType);
         } catch {
             return false;
         }
@@ -78,20 +68,10 @@ public class AudioManager
 
     public async void LoadWithCallback(string path, UnityAction<AudioClip> action)
     {
-        AudioClip clip = await clipController.LoadAudioClipWithWebRequest(path);
+        AudioClip clip = await clipController.LoadWithWebRequest(path);
 
         LoadExecute(clip);
         action(clip);
-    }
-
-    public void Load(AudioClip clip)
-    {
-        foreach (var audioSource in audioSources)
-        {
-            audioSource.clip = clip;
-        }
-
-        //PreLoad();
     }
 
     public void Play()
@@ -115,38 +95,6 @@ public class AudioManager
         {
             audioSource.volume = volume;
         }
-    }
-
-    public IEnumerator Reset()
-    {
-        Debug.Log("Reset");
-
-        yield return new WaitForSeconds(1);
-
-        state = AudioSourceState.Stop;
-
-        PreLoad();
-        
-    }
-
-    public void PreLoad()
-    {
-        Debug.Log("Preload");
-
-        /*
-        audioSource.Stop();
-        audioSource.volume = 0;
-        audioSource.Play();
-
-        if (state == AudioSourceState.Stop)
-        {
-            audioSource.Pause();
-        }
-
-        audioSource.volume = 1;
-
-        state = AudioSourceState.Load;
-        */
     }
 
     public void PlayScheduled(float scheduledTime)
@@ -213,59 +161,6 @@ public class AudioManager
     }
 }
 
-public class AudioClipController
-{
-    private AudioClip clip = null;
-    private AudioClip originalClip = null;
-
-    public AudioClip GetAudioClip()
-    {
-        return clip;
-    }
-
-    public async UniTask<AudioClip> LoadAudioClipWithWebRequest(string filename, AudioType audioType=AudioType.OGGVORBIS)
-    {
-        Log.Write("LoadAudioClipWithWebRequest Start");
-
-        using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip("file://" + filename, audioType))
-        {
-            await www.SendWebRequest(); // must wait
-            originalClip = clip = DownloadHandlerAudioClip.GetContent(www);
-        }
-
-        //Log.Write("loadState = " + clip.loadState);
-        //Log.Write("loadType = " + clip.loadType);
-
-        //Log.Write("Clip Load Success");
-
-        return originalClip;
-    }
-
-    public void SetAudioClip(AudioClip _clip)
-    {
-        originalClip = clip = _clip;
-    }
-
-    public void SetFadeOutCurve()
-    {
-        int dataLength = (int)(originalClip.frequency * originalClip.length);
-
-        float[] data = new float[dataLength * originalClip.channels];
-
-        originalClip.GetData(data, 0);
-
-        for(int i=0; i<data.Length; i++)
-        {
-            float rate = (float)(data.Length - i) / (float)data.Length;
-
-            data[i] = data[i] * ( rate * (2 - rate) ); //http://marupeke296.sakura.ne.jp/TIPS_No19_interpolation.html
-        }
-
-        clip = AudioClip.Create("effectedclip", data.Length, clip.channels, clip.frequency, false);
-        clip.SetData(data, 0);
-    }
-}
-
 public class SoundPlayer
 {
     protected AudioSource audioSource;
@@ -280,7 +175,7 @@ public class SoundPlayer
         audioSource.clip = clip;
     }
 
-    public virtual void SetAudioClip(AudioClipController controller)
+    public virtual void SetAudioClip(AudioClipUtils controller)
     {
         audioSource.clip = controller.GetAudioClip();
     }
