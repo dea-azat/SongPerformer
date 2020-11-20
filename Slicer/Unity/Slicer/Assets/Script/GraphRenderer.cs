@@ -7,11 +7,8 @@ using UnityEngine.UI.Extensions;
 
 using System.Linq;
 
-using Cysharp.Threading.Tasks;
-
-
 interface IGraphRenderer{
-    void Render(string path);
+    void Render(AudioClipUtils clip);
     void ReRender();
 
 }
@@ -31,9 +28,10 @@ public class GraphRenderer : MonoBehaviour, IGraphRenderer
     }
 
 
-    public void Render(string path)
+    public void Render(AudioClipUtils clip)
     {
-        RenderFromPath(path);
+        data = clip.GetData();
+        Render(data);
     }
 
     public void ReRender()
@@ -43,52 +41,13 @@ public class GraphRenderer : MonoBehaviour, IGraphRenderer
         Render(data);
     }
 
-    private async void RenderFromPath(string path)
-    {
-
-        AudioClipUtils audioClip = new AudioClipUtils();
-        await audioClip.LoadByWebRequest(path, AudioType.WAV);
-        data = audioClip.GetData();
-        Render(data);
-    }
-
-    void TestAvaragingData()
-    {
-        float[] data = AveragingData(new float[4] { 1, 2, 3, 4}, 2);
-        for (int i = 0; i < data.Length; i++)
-        {
-            Debug.Log(data[i]);
-        }
-    }
-
-    void TestGraphRenderer()
-    {
-        const string DOWN_EFFECT_PATH = "D:/BeatSaberMod/EffectSamples/Down_Effect.wav";
-        Render(DOWN_EFFECT_PATH);
-    }
-
-    async void TestAvaraginDataWithAudioData()
-    {
-        const string DOWN_EFFECT_PATH = "D:/BeatSaberMod/EffectSamples/Down_Effect.wav";
-
-        AudioClipUtils audioClip = new AudioClipUtils();
-        await audioClip.LoadByWebRequest(DOWN_EFFECT_PATH, AudioType.WAV);
-        float[] data = audioClip.GetData();
-        data = AveragingData(data, 2000);
-
-        for (int i = 0; i < data.Length; i++)
-        {
-            Debug.Log(data[i]);
-        }
-    }
-
     // Update is called once per frame
     void Update()
     {
         
     }
 
-    private float[] AveragingData(float[] data, int totalNum)
+    protected float[] AveragingData(float[] data, int totalNum)
     {
         float[] ave = new float[totalNum];
         int diff = totalNum - data.Length % totalNum;
@@ -114,7 +73,7 @@ public class GraphRenderer : MonoBehaviour, IGraphRenderer
         return ave;
     }
 
-    private Vector2[] Data2Positions(float[] data)
+    protected Vector2[] Data2Positions(float[] data)
     {
 
         int length = data.Length;
@@ -136,7 +95,7 @@ public class GraphRenderer : MonoBehaviour, IGraphRenderer
         return positions;
     }
 
-    private void RenderAll(float[] data)
+    protected void RenderAll(float[] data)
     {
         Vector2[] posisions = Data2Positions(data);
 
@@ -148,7 +107,7 @@ public class GraphRenderer : MonoBehaviour, IGraphRenderer
         }
     }
 
-    private void RenderOne(Vector2 start, Vector2 end)
+    protected void RenderOne(Vector2 start, Vector2 end)
     {
         GameObject connection = new GameObject("connection", typeof(Image));
         connection.transform.SetParent(this.transform, false);
@@ -166,7 +125,7 @@ public class GraphRenderer : MonoBehaviour, IGraphRenderer
         rect.localEulerAngles = new Vector3(0, 0, Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg);
     }
 
-    private void Render(float[] data)
+    protected void Render(float[] data)
     {
         UILineRenderer lineRenderer = gameObject.GetComponent<UILineRenderer>();
 
@@ -175,5 +134,32 @@ public class GraphRenderer : MonoBehaviour, IGraphRenderer
         lineRenderer.SetPoints(posisions);
 
         lineRenderer.SetAllDirty(); //なぜかこれで再描画できる
+    }
+}
+
+public class GraphRendererTest: GraphRenderer
+{
+    void TestAvaragingData()
+    {
+        float[] data = AveragingData(new float[4] { 1, 2, 3, 4 }, 2);
+        for (int i = 0; i < data.Length; i++)
+        {
+            Debug.Log(data[i]);
+        }
+    }
+
+    async void TestAvaraginDataWithAudioData()
+    {
+        const string DOWN_EFFECT_PATH = "D:/BeatSaberMod/EffectSamples/Down_Effect.wav";
+
+        AudioClipUtils audioClip = new AudioClipUtils();
+        await audioClip.LoadByWebRequest(DOWN_EFFECT_PATH, AudioType.WAV);
+        float[] data = audioClip.GetData();
+        data = AveragingData(data, 2000);
+
+        for (int i = 0; i < data.Length; i++)
+        {
+            Debug.Log(data[i]);
+        }
     }
 }

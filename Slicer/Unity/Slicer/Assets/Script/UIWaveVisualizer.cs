@@ -30,12 +30,21 @@ public class UIWaveVisualizer : MonoBehaviour
     private void TestGraphRender()
     {
         const string DOWN_EFFECT_PATH = "D:/BeatSaberMod/EffectSamples/Down_Effect.wav";
-        graphRenderer.Render(DOWN_EFFECT_PATH);
+        SetWave(DOWN_EFFECT_PATH);
     }
 
-    public void SetWave(string path)
+    public async void SetWave(string path)
     {
-        graphRenderer.Render(path);
+        AudioClipUtils audioClip = new AudioClipUtils();
+        await audioClip.LoadByWebRequest(path, AudioType.WAV);
+        graphRenderer.Render(audioClip);
+    }
+
+    public void SetWave(AudioClip clip)
+    {
+        AudioClipUtils audioClip = new AudioClipUtils();
+        audioClip.SetAudioClip(clip);
+        graphRenderer.Render(audioClip);
     }
 
     public void OnPlusButtonClick()
