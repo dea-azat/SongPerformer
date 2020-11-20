@@ -7,7 +7,16 @@ using UnityEngine.UI.Extensions;
 
 using System.Linq;
 
-public class GraphRenderer : MonoBehaviour
+using Cysharp.Threading.Tasks;
+
+
+interface IGraphRenderer{
+    void Render(string path);
+    void ReRender();
+
+}
+
+public class GraphRenderer : MonoBehaviour, IGraphRenderer
 {
     public float width = 2000;
     float height = 300;
@@ -16,14 +25,31 @@ public class GraphRenderer : MonoBehaviour
     private float[] data;
 
     // Start is called before the first frame update
-    async void Start()
+    void Start()
     {
-        const string DOWN_EFFECT_PATH = "D:/BeatSaberMod/EffectSamples/Down_Effect.wav";
+        //TestGraphRenderer();
+    }
 
+
+    public void Render(string path)
+    {
+        RenderFromPath(path);
+    }
+
+    public void ReRender()
+    {
+        if (data.Length == 0) return;
+
+        Render(data);
+    }
+
+    private async void RenderFromPath(string path)
+    {
 
         AudioClipUtils audioClip = new AudioClipUtils();
-        await audioClip.LoadByWebRequest(DOWN_EFFECT_PATH, AudioType.WAV);
+        await audioClip.LoadByWebRequest(path, AudioType.WAV);
         data = audioClip.GetData();
+        Render(data);
     }
 
     void TestAvaragingData()
@@ -35,10 +61,10 @@ public class GraphRenderer : MonoBehaviour
         }
     }
 
-    async void TestGraphRenderer()
+    void TestGraphRenderer()
     {
-        //float[] data = { 0, 400, 0, -400, 0 };
-        Render(data);
+        const string DOWN_EFFECT_PATH = "D:/BeatSaberMod/EffectSamples/Down_Effect.wav";
+        Render(DOWN_EFFECT_PATH);
     }
 
     async void TestAvaraginDataWithAudioData()
@@ -60,11 +86,6 @@ public class GraphRenderer : MonoBehaviour
     void Update()
     {
         
-    }
-
-    public void UpdateGraph()
-    {
-        Render(data);
     }
 
     private float[] AveragingData(float[] data, int totalNum)
@@ -155,5 +176,4 @@ public class GraphRenderer : MonoBehaviour
 
         lineRenderer.SetAllDirty(); //なぜかこれで再描画できる
     }
-
 }
