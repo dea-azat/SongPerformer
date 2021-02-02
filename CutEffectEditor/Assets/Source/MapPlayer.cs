@@ -1,15 +1,12 @@
-﻿using Cysharp.Threading.Tasks;
-using SongPerformer;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Security.Cryptography;
+﻿using System;
 using UnityEngine;
+using UnityEngine.Events;
+using Cysharp.Threading.Tasks;
 
 public delegate void SendNoteHandler(NoteInfo noteInfo);
+public delegate void PlayStopHandler();
 
-public class MapPlayer
+public class MapPlayer : MonoBehaviour 
 {
     string songPath;
     dynamic songEvents;
@@ -20,31 +17,30 @@ public class MapPlayer
     float measureTime;
     float startOffset = 0.135f;
 
-    private AudioManager audioManager_song;
-    private CutEffectPlayer cutEffect;
+    public AudioManager AudioManager_Song { get; set; }
 
     bool isPlaying = false;
-
     bool isEnabled = true;
 
-    public event SendNoteHandler SendNote;
+    [Serializable] public class SendNoteEvent : UnityEvent<NoteInfo> { }
+    [SerializeField] public SendNoteEvent OnSendNote;
+
+    [Serializable] public class PlayStopEvent : UnityEvent { }
+    [SerializeField] public PlayStopEvent OnPlayStop;
 
     // Start is called before the first frame update
-    public async UniTask<bool> TryInit(string songPath, string mapPath, GameObject gameObject, CutEffectPlayer cutEffectManager)
+    public async UniTask<bool> TryInit(string songPath, string mapPath, GameObject gameObject)
     {
         if (!isEnabled) return false;
 
         if (!TryInitMap(mapPath)) return false;
 
-        cutEffect = cutEffectManager;
-
-        audioManager_song = new AudioManager(gameObject);
+        AudioManager_Song = new AudioManager(gameObject);
         
-        bool song_loaded = await audioManager_song.TryLoad(songPath, AudioType.OGGVORBIS);
+        bool song_loaded = await AudioManager_Song.TryLoad(songPath, AudioType.OGGVORBIS);
         if(!song_loaded) return false;
 
-        audioManager_song.SetVolume(0.7f);
-        AdjustTapKey(audioManager_song.GetAudioClip());
+        AudioManager_Song.SetVolume(0.7f);
 
         return true;
     }
@@ -63,28 +59,9 @@ public class MapPlayer
         return true;
     }
 
-    public void InitCutEffectMapForEdit()
-    {
-        CutEffectMap cutEffectMap = new CutEffectMap();
-        for (int i = 0; i < songEvents.Count; i++)
-        {
-            NoteInfo noteInfo = new NoteInfo((float)songEvents[i]._time, (int)songEvents[i]._type, (int)songEvents[i]._cutDirection);
-            cutEffectMap.cutEffectEvents.Add(new CutEffectEvent(noteInfo));
-        }
-
-        cutEffect.SetCutEffectMap(cutEffectMap);
-    }
-
-    public void AdjustTapKey(AudioClip audioClip)
-    {
-        float pitch = KeyFinder.AdjustPitch(audioClip, 21); //KeyFinder側に定数マクロを持つべきだが...
-
-        cutEffect.SetPitch(pitch);
-    }
-
     public void Play()
     {
-        audioManager_song.Play();
+        AudioManager_Song.Play();
         isPlaying = true;
     }
 
@@ -97,57 +74,24 @@ public class MapPlayer
 
         if (!isPlaying) return;
 
-        while (audioManager_song.GetNowTime() > nextTime)
+        while (AudioManager_Song.GetNowTime() > nextTime)
         {
             NoteInfo noteInfo = new NoteInfo((float)songEvents[nowIndex]._time, (int)songEvents[nowIndex]._type, (int)songEvents[nowIndex]._cutDirection);
             
-            SendNote(noteInfo);
-            
-            //PlayForEdit(noteInfo);
-            //cutEffect.Play(noteInfo);
+            //SendNote(noteInfo); //PlayForEdit(noteInfo); //cutEffect.Play(noteInfo);
+            OnSendNote.Invoke(noteInfo);
 
             int length = songEvents.Count;
             if (length - 1 == nowIndex)
             {
-                nextTime = audioManager_song.GetAudioClip().length;
-                //StopForEdit();
+                nextTime = AudioManager_Song.GetAudioClip().length;
+                //PlayStop(); //StopForEdit();
+                OnPlayStop.Invoke();
                 return;
             }
 
             beforeTime = nextTime;
-            nextTime = songEvents[++nowIndex]._time * measureTime;
-            // sound play            
+            nextTime = songEvents[++nowIndex]._time * measureTime;           
         }
-    }
-
-    void PlayForEdit(NoteInfo noteInfo)
-    {
-        int tapIndex = SongEvents2TapIndex(noteInfo);
-
-        float diff = beforeTime - nextTime;
-        if (diff * diff > 0.001)
-        {
-            cutEffect.PlayScheduledForEdit(tapIndex, scheduledTime, noteInfo);
-        }
-    }
-
-    void StopForEdit()
-    {
-        cutEffect.WriteOutCutEffectMap(/*mapPath*/""); /*! @todo Modify Edit Process  */
-    }
-
-    int SongEvents2TapIndex(NoteInfo noteInfo)
-    {
-        int index = 0;
-
-        if (noteInfo.cutDirection == NoteInfo.CutDirection.DOWN || noteInfo.cutDirection == NoteInfo.CutDirection.UP)
-        {
-            if (noteInfo.type == NoteInfo.Type.LEFT) index = 2;
-            if (noteInfo.type == NoteInfo.Type.RIGHT) index = 3;
-        }
-        else if (noteInfo.type == NoteInfo.Type.LEFT) { index = 0; }
-        else if (noteInfo.type == NoteInfo.Type.RIGHT) { index = 1; }
-
-        return index;
     }
 }
