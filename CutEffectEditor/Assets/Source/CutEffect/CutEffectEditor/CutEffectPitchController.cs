@@ -9,7 +9,7 @@ public class CutEffectPitchController : MonoBehaviour
     private CutEffectPlayer cutEffectManager;
 
     public GameObject boxSliderPrefab;
-    private BoxSlider masterSlider;
+    private BoxSlider_BeatSaber masterSlider;
     private RevolvingBoxSlider[] sliders;
 
     public void Init(int tap_num, CutEffectPlayer manager)
@@ -34,10 +34,10 @@ public class CutEffectPitchController : MonoBehaviour
 
         switch(noteInfo.type){
             case NoteInfo.Type.LEFT:
-                index = (int)BoxSlider.Slider_Type.LEFT_DOWN;
+                index = (int)SliderType_BeatSaber.LEFT_DOWN;
                 break;
             case NoteInfo.Type.RIGHT:
-                index = (int)BoxSlider.Slider_Type.RIGHT_DOWN;
+                index = (int)SliderType_BeatSaber.RIGHT_DOWN;
                 break;
             default:
                 index = 0;
@@ -69,19 +69,19 @@ public class CutEffectPitchController : MonoBehaviour
         Vector3 left_sliders_pos = new Vector3(-4f, 0, 3f);
 
         RevolvingBoxSlider rSlider = new RevolvingBoxSlider(
-            boxSliderPrefab, BoxSlider.Slider_Type.LEFT_BEGIN, CutEffectPlayer.DIRECTION_NUM, 3f, SliderValueChanged
+            boxSliderPrefab, SliderType_BeatSaber.LEFT_BEGIN, CutEffectPlayer.DIRECTION_NUM, 3f, SliderValueChanged
             );
         rSlider.Move(left_sliders_pos);
-        sliders[(int)BoxSlider.Slider_Type.LEFT_DOWN] = rSlider;
+        sliders[(int)SliderType_BeatSaber.LEFT_DOWN] = rSlider;
 
 
         Vector3 right_sliders_pos = new Vector3(4f, 0, 3f);
 
         rSlider = new RevolvingBoxSlider(
-            boxSliderPrefab, BoxSlider.Slider_Type.RIGHT_BEGIN, CutEffectPlayer.DIRECTION_NUM, 3f, SliderValueChanged
+            boxSliderPrefab, SliderType_BeatSaber.RIGHT_BEGIN, CutEffectPlayer.DIRECTION_NUM, 3f, SliderValueChanged
             );
         rSlider.Move(right_sliders_pos);
-        sliders[(int)BoxSlider.Slider_Type.RIGHT_DOWN] = rSlider;
+        sliders[(int)SliderType_BeatSaber.RIGHT_DOWN] = rSlider;
         /*
         boxSlider = Instantiate(boxSliderPrefab, new Vector3(2f, 0, 0), Quaternion.identity);
         slider = boxSlider.GetComponent<BoxSlider>();
@@ -90,8 +90,8 @@ public class CutEffectPitchController : MonoBehaviour
         sliders[(int)BoxSlider.Slider_Type.RIGHT_DOWN] = slider;
         */
         GameObject boxSlider = Instantiate(boxSliderPrefab, new Vector3(0, 0, 0), Quaternion.identity);
-        BoxSlider slider = boxSlider.GetComponent<BoxSlider>();
-        slider.Init(BoxSlider.Slider_Type.MASTER);
+        BoxSlider_BeatSaber slider = boxSlider.GetComponent<BoxSlider_BeatSaber>();
+        slider.Init(SliderType_BeatSaber.MASTER);
         slider.ValueChanged += SliderValueChanged;
         masterSlider = slider;
         
@@ -101,9 +101,9 @@ public class CutEffectPitchController : MonoBehaviour
     {
         Debug.Log("SliderValueChanged");
 
-        IntSliderEventArgs ise = (IntSliderEventArgs)e;
+        IntSliderEventArgs<SliderType_BeatSaber> ise = (IntSliderEventArgs<SliderType_BeatSaber>)e;
 
-        if (ise.type == BoxSlider.Slider_Type.MASTER)
+        if (ise.type == SliderType_BeatSaber.MASTER)
         {
             cutEffectManager.SetMasterDiffPitch(ise.index);
         }
@@ -115,13 +115,13 @@ public class CutEffectPitchController : MonoBehaviour
         }
     }
 
-    int SliderType2TapIndex(BoxSlider.Slider_Type type)
+    int SliderType2TapIndex(SliderType_BeatSaber type)
     {
         switch (type)
         {
-            case BoxSlider.Slider_Type.LEFT_DOWN:
+            case SliderType_BeatSaber.LEFT_DOWN:
                 return 2;
-            case BoxSlider.Slider_Type.RIGHT_DOWN:
+            case SliderType_BeatSaber.RIGHT_DOWN:
                 return 3;
             default:
                 return 0;
